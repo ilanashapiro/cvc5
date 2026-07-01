@@ -165,6 +165,8 @@ void MinisatSatSolver::setupOptions()
   d_minisat->clause_decay = options().prop.satClauseDecay;
   d_minisat->restart_first = options().prop.satRestartFirst;
   d_minisat->restart_inc = options().prop.satRestartInc;
+  d_minisat->phase_saving = options().prop.satPhaseSaving;
+  d_minisat->rnd_pol = options().prop.satRandomPolarity;
 }
 
 ClauseId MinisatSatSolver::addClause(const SatClause& clause, bool removable)
@@ -275,7 +277,6 @@ SatValue MinisatSatSolver::modelValue(SatLiteral l)
 
 void MinisatSatSolver::preferPhase(SatLiteral lit)
 {
-  Assert(!d_minisat->rnd_pol);
   Trace("minisat") << "preferPhase(" << lit << ")"
                    << " " << lit.getSatVariable() << " " << lit.isNegated()
                    << std::endl;

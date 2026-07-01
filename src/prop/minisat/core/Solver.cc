@@ -796,8 +796,20 @@ Lit Solver::pickBranchLit()
       return lit_Undef;
     } else {
       decisions++;
-      Lit decisionLit = mkLit(
-          next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
+      bool pol;
+      if (polarity[next] & 0x2)
+      {
+        pol = polarity[next] & 0x1;
+      }
+      else if (rnd_pol)
+      {
+        pol = drand(random_seed) < 0.5;
+      }
+      else
+      {
+        pol = polarity[next] & 0x1;
+      }
+      Lit decisionLit = mkLit(next, pol);
 
       // org-mode tracing -- decision engine decision
       if (TraceIsOn("dtview"))

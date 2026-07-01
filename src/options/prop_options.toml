@@ -34,6 +34,24 @@ name   = "SAT Layer"
   help       = "sets the random seed for the sat solver"
 
 [[option]]
+  name       = "satPhaseSaving"
+  category   = "expert"
+  long       = "sat-phase-saving=N"
+  type       = "uint64_t"
+  default    = "2"
+  minimum    = "0"
+  maximum    = "2"
+  help       = "controls the level of phase saving in the SAT solver (0=none, 1=limited, 2=full)"
+
+[[option]]
+  name       = "satRandomPolarity"
+  category   = "expert"
+  long       = "sat-random-polarity"
+  type       = "bool"
+  default    = "false"
+  help       = "use random polarities for branching in the SAT solver (useful for model diversity)"
+
+[[option]]
   name       = "satVarDecay"
   category   = "expert"
   type       = "double"
