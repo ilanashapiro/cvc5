@@ -1143,9 +1143,13 @@ class CVC5_EXPORT SolverEngine
   /**
    * Cache mapping user-facing Boolean terms to their preprocessed internal
    * form (after applySubstitutions + expandDefinitions + rewrite). Used to
-   * skip redundant preprocessing in repeated getValue calls.
+   * skip redundant preprocessing in repeated getValue calls. Only entries
+   * whose preprocessed form is a SAT literal are cached, since those are
+   * guaranteed stable (cvc5 won't solve for allocated SAT variables, so
+   * their preprocessed form cannot change). Context-dependent on
+   * userContext to handle push/pop correctly.
    */
-  std::map<Node, Node> d_ppCache;
+  context::CDHashMap<Node, Node>* d_ppCache;
 
   /** The statistics class */
   std::unique_ptr<smt::SolverEngineStatistics> d_stats;
