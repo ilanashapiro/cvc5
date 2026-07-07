@@ -12,6 +12,8 @@
 
 #include "smt/solver_engine.h"
 
+#include "context/cdhashmap.h"
+
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
@@ -117,10 +119,13 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_safeOptsSetRegularOption(false),
       d_safeOptsSetRegularOptionToDefault(false),
       d_isInternalSubsolver(false),
+      d_ppCache(nullptr),
       d_stats(nullptr)
 {
   // listen to resource out
   getResourceManager()->registerListener(d_routListener.get());
+  // preprocessing cache for getValue fast path
+  d_ppCache = new (true) context::CDHashMap<Node, Node>(d_env->getUserContext());
   // make statistics
   d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
@@ -259,6 +264,11 @@ SolverEngine::~SolverEngine()
   try
   {
     shutdown();
+
+    // Destroy context-dependent caches before context cleanup.
+    // Must use deleteSelf() for objects allocated with new(true).
+    d_ppCache->deleteSelf();
+    d_ppCache = nullptr;
 
     // global push/pop around everything, to ensure proper destruction
     // of context-dependent data structures
@@ -1241,14 +1251,14 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
   {
     prop::PropEngine* pe = d_smtSolver->getPropEngine();
     Node ppForm;
-    auto cit = d_ppCache.find(t);
-    if (cit != d_ppCache.end())
+    auto cit = d_ppCache->find(t);
+    if (cit != d_ppCache->end())
     {
-      ppForm = cit->second;
+      ppForm = (*cit).second;
     }
     else
     {
-      // Cache miss: compute preprocessed form and cache it
+      // Cache miss: compute preprocessed form
       std::unordered_map<Node, Node> defCache;
       ExpandDefs expDef(*d_env.get());
       ppForm = d_smtSolver->getPreprocessor()->applySubstitutions(t);
@@ -1257,7 +1267,12 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
       {
         ppForm = d_env->getRewriter()->rewrite(ppForm);
       }
-      d_ppCache[t] = ppForm;
+      // Only cache if the preprocessed form is a SAT literal, since those
+      // are guaranteed stable (cvc5 won't solve for allocated SAT variables).
+      if (pe->isSatLiteral(ppForm))
+      {
+        d_ppCache->insert(t, ppForm);
+      }
     }
     // Try to resolve from SAT trail or constant
     if (ppForm.isConst())
