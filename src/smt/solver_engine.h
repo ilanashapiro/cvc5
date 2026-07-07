@@ -1140,6 +1140,13 @@ class CVC5_EXPORT SolverEngine
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;
 
+  /**
+   * Cache mapping user-facing Boolean terms to their preprocessed internal
+   * form (after applySubstitutions + expandDefinitions + rewrite). Used to
+   * skip redundant preprocessing in repeated getValue calls.
+   */
+  std::map<Node, Node> d_ppCache;
+
   /** The statistics class */
   std::unique_ptr<smt::SolverEngineStatistics> d_stats;
 }; /* class SolverEngine */

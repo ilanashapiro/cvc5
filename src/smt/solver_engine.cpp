@@ -1233,6 +1233,55 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
 
+  // Fast path for Boolean terms: use a cache to avoid redundant preprocessing
+  // across repeated getValue calls on the same terms (e.g., across implicant
+  // iterations). The cache maps original terms to their preprocessed internal
+  // form. The preprocessed form is then looked up in the SAT trail directly.
+  if (expectedType.isBoolean())
+  {
+    prop::PropEngine* pe = d_smtSolver->getPropEngine();
+    Node ppForm;
+    auto cit = d_ppCache.find(t);
+    if (cit != d_ppCache.end())
+    {
+      ppForm = cit->second;
+    }
+    else
+    {
+      // Cache miss: compute preprocessed form and cache it
+      std::unordered_map<Node, Node> defCache;
+      ExpandDefs expDef(*d_env.get());
+      ppForm = d_smtSolver->getPreprocessor()->applySubstitutions(t);
+      ppForm = expDef.expandDefinitions(ppForm, defCache);
+      if (!ppForm.getType().isFunction())
+      {
+        ppForm = d_env->getRewriter()->rewrite(ppForm);
+      }
+      d_ppCache[t] = ppForm;
+    }
+    // Try to resolve from SAT trail or constant
+    if (ppForm.isConst())
+    {
+      return ppForm;
+    }
+    if (pe->isSatLiteral(ppForm))
+    {
+      bool val;
+      if (pe->hasValue(ppForm, val))
+      {
+        return d_env->getNodeManager()->mkConst(val);
+      }
+    }
+    // SAT trail miss: use model evaluation on the already-preprocessed form
+    Trace("smt") << "--- getting value of " << ppForm << endl;
+    TheoryModel* m = getAvailableModel("get-value");
+    Assert(m != nullptr);
+    Node resultNode = m->getValue(ppForm);
+    Assert(resultNode.isNull() || resultNode.getType() == expectedType);
+    return resultNode;
+  }
+
+  // Standard path for non-Boolean terms
   // We must expand definitions here, which replaces certain subterms of t
   // by the form that is used internally. This is necessary for some corner
   // cases of get-value to be accurate, e.g., when getting the value of
