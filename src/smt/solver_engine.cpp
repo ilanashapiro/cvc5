@@ -1266,6 +1266,17 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
       {
         ppForm = d_env->getRewriter()->rewrite(ppForm);
       }
+      // If not yet a SAT literal, register it via ensureLiteral so it
+      // becomes one (theory preprocessing may produce a different node).
+      if (!ppForm.isConst() && !pe->isSatLiteral(ppForm)
+          && ppForm.getType().isBoolean())
+      {
+        Node ensured = pe->ensureLiteral(ppForm);
+        if (ensured != ppForm)
+        {
+          ppForm = ensured;
+        }
+      }
       // Only cache if the preprocessed form is a SAT literal, since those
       // are guaranteed stable (cvc5 won't solve for allocated SAT variables).
       // With --cache-all-pp-forms, cache all terms (unsafe with push/pop).
@@ -1285,26 +1296,6 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
       if (pe->hasValue(ppForm, val))
       {
         return d_env->getNodeManager()->mkConst(val);
-      }
-    }
-    else if (ppForm.getType().isBoolean())
-    {
-      // ppForm is not a SAT literal — register it and update cache with
-      // the returned node (which may differ due to theory preprocessing).
-      Node ensured = pe->ensureLiteral(ppForm);
-      if (ensured != ppForm)
-      {
-        d_ppCache->insert(t, ensured);
-        ppForm = ensured;
-      }
-      // Try SAT trail again with the ensured form
-      if (pe->isSatLiteral(ppForm))
-      {
-        bool val;
-        if (pe->hasValue(ppForm, val))
-        {
-          return d_env->getNodeManager()->mkConst(val);
-        }
       }
     }
     // SAT trail miss: use model evaluation on the already-preprocessed form
