@@ -110,6 +110,14 @@ name   = "SMT Layer"
   help = "Only include a subset of variables whose values, in addition to the values of variables whose values are implied, are sufficient to show the input formula is satisfied by the given model."
 
 [[option]]
+  name       = "cacheAllPpForms"
+  category   = "expert"
+  long       = "cache-all-pp-forms"
+  type       = "bool"
+  default    = "false"
+  help       = "cache preprocessed forms of all Boolean terms in getValue, not just SAT literals (unsafe with push/pop but faster for incremental blocking-clause workflows)"
+
+[[option]]
   name       = "produceLearnedLiterals"
   category   = "regular"
   long       = "produce-learned-literals"

@@ -265,8 +265,7 @@ SolverEngine::~SolverEngine()
   {
     shutdown();
 
-    // Destroy context-dependent caches before context cleanup.
-    // Must use deleteSelf() for objects allocated with new(true).
+    // Destroy context-dependent caches before context cleanup
     d_ppCache->deleteSelf();
     d_ppCache = nullptr;
 
@@ -1269,7 +1268,8 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
       }
       // Only cache if the preprocessed form is a SAT literal, since those
       // are guaranteed stable (cvc5 won't solve for allocated SAT variables).
-      if (pe->isSatLiteral(ppForm))
+      // With --cache-all-pp-forms, cache all terms (unsafe with push/pop).
+      if (pe->isSatLiteral(ppForm) || options().smt.cacheAllPpForms)
       {
         d_ppCache->insert(t, ppForm);
       }
@@ -1285,6 +1285,26 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
       if (pe->hasValue(ppForm, val))
       {
         return d_env->getNodeManager()->mkConst(val);
+      }
+    }
+    else if (ppForm.getType().isBoolean())
+    {
+      // ppForm is not a SAT literal — register it and update cache with
+      // the returned node (which may differ due to theory preprocessing).
+      Node ensured = pe->ensureLiteral(ppForm);
+      if (ensured != ppForm)
+      {
+        d_ppCache->insert(t, ensured);
+        ppForm = ensured;
+      }
+      // Try SAT trail again with the ensured form
+      if (pe->isSatLiteral(ppForm))
+      {
+        bool val;
+        if (pe->hasValue(ppForm, val))
+        {
+          return d_env->getNodeManager()->mkConst(val);
+        }
       }
     }
     // SAT trail miss: use model evaluation on the already-preprocessed form
