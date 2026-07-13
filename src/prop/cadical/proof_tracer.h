@@ -72,22 +72,23 @@ class ProofTracer : public CaDiCaL::Tracer
 
   ProofTracer(const CadicalPropagator& propagator);
 
-  void add_original_clause(uint64_t clause_id,
+  void add_original_clause(int64_t clause_id,
                            bool redundant,
                            const std::vector<int>& clause,
                            bool restored) override;
 
-  void add_derived_clause(uint64_t clause_id,
+  void add_derived_clause(int64_t clause_id,
                           bool redundant,
+                          int witness,
                           const std::vector<int>& clause,
-                          const std::vector<uint64_t>& antecedents) override;
+                          const std::vector<int64_t>& antecedents) override;
 
-  void add_assumption_clause(uint64_t clause_id,
+  void add_assumption_clause(int64_t clause_id,
                              const std::vector<int>& clause,
-                             const std::vector<uint64_t>& antecedents) override;
+                             const std::vector<int64_t>& antecedents) override;
 
   void conclude_unsat(CaDiCaL::ConclusionType type,
-                      const std::vector<uint64_t>& clause_ids) override;
+                      const std::vector<int64_t>& clause_ids) override;
 
   /**
    * Backwards traversal of clausal proof starting from the empty clause.

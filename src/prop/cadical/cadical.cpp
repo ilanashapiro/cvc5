@@ -22,6 +22,7 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/proof_options.h"
+#include "options/prop_options.h"
 #include "prop/cadical/cdclt_propagator.h"
 #include "prop/cadical/proof_tracer.h"
 #include "prop/cadical/util.h"
@@ -90,6 +91,17 @@ CadicalSolver::CadicalSolver(Env& env,
 void CadicalSolver::initialize()
 {
   d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
+
+  // Randomize phase decisions if --sat-random-polarity is set.
+  // Set randecinit/randecint to 0 so random decisions fire immediately
+  // (default thresholds are too high for short incremental queries).
+  if (options().prop.satRandomPolarity)
+  {
+    d_solver->set("randec", 1);
+    d_solver->set("randecinit", 0);
+    d_solver->set("randecint", 0);
+    d_solver->set("randeclength", 1000000);
+  }
 
   // walk and lucky phase do not use the external propagator, disable for now
   if (d_propagator)
