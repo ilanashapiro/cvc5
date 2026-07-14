@@ -99,7 +99,7 @@ ProofTracer::ProofTracer(const CadicalPropagator& propagator)
 {
 }
 
-void ProofTracer::add_original_clause(int64_t clause_id,
+void ProofTracer::add_original_clause(uint64_t clause_id,
                                       CVC5_UNUSED bool redundant,
                                       const std::vector<int>& clause,
                                       CVC5_UNUSED bool restored)
@@ -110,39 +110,36 @@ void ProofTracer::add_original_clause(int64_t clause_id,
   Trace("cadical::prooftracer") << d_clauses.at(clause_id) << std::endl;
 }
 
-void ProofTracer::add_derived_clause(CVC5_UNUSED int64_t clause_id,
+void ProofTracer::add_derived_clause(CVC5_UNUSED uint64_t clause_id,
                                      bool redundant,
-                                     CVC5_UNUSED int witness,
                                      const std::vector<int>& clause,
-                                     const std::vector<int64_t>& antecedents)
+                                     const std::vector<uint64_t>& antecedents)
 {
   (void)redundant;
-  std::vector<uint64_t> uantecedents(antecedents.begin(), antecedents.end());
   d_clauses.emplace(
       clause_id,
-      ClauseInfo(clause_id, ClauseType::DERIVED, clause, uantecedents));
+      ClauseInfo(clause_id, ClauseType::DERIVED, clause, antecedents));
   Trace("cadical::prooftracer") << d_clauses.at(clause_id) << std::endl;
 }
 
 void ProofTracer::add_assumption_clause(
-    int64_t clause_id,
+    uint64_t clause_id,
     const std::vector<int>& clause,
-    const std::vector<int64_t>& antecedents)
+    const std::vector<uint64_t>& antecedents)
 {
   // Assumption clauses are the negation of the core of failed/unsat
   // assumptions.
-  std::vector<uint64_t> uantecedents(antecedents.begin(), antecedents.end());
   d_clauses.emplace(
       clause_id,
-      ClauseInfo(clause_id, ClauseType::ASSUMPTION, clause, uantecedents));
+      ClauseInfo(clause_id, ClauseType::ASSUMPTION, clause, antecedents));
   Trace("cadical::prooftracer") << d_clauses.at(clause_id) << std::endl;
 }
 
 void ProofTracer::conclude_unsat(CVC5_UNUSED CaDiCaL::ConclusionType type,
-                                 const std::vector<int64_t>& clause_ids)
+                                 const std::vector<uint64_t>& clause_ids)
 {
   // Store final clause ids that concluded unsat.
-  d_final_clauses.assign(clause_ids.begin(), clause_ids.end());
+  d_final_clauses = clause_ids;
 }
 
 void ProofTracer::compute_proof_core(std::vector<uint64_t>& core) const
