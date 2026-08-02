@@ -322,6 +322,7 @@ set(regress_0_tests
   regress0/bv/bug734.smt2
   regress0/bv/bv-abstr-bug2.smt2
   regress0/bv/bv-card-conflict.smt2
+  regress0/bv/bv-gauss-elim-urem-neg-rhs.smt2
   regress0/bv/bv-int-collapse1.smt2
   regress0/bv/bv-int-collapse2.smt2
   regress0/bv/bv-missing-dsl-rew.smt2
@@ -2131,6 +2132,9 @@ set(regress_0_tests
   regress0/strings/ctn-decompose-3-sym-nf.smt2
   regress0/strings/ctn-repl-to-ctn.smt2
   regress0/strings/ctn-split-no-overlap.smt2
+  regress0/strings/dd.instance12194.smt2
+  regress0/strings/dd.instance46612.smt2
+  regress0/strings/dd.instance51542.smt2
   regress0/strings/dd_1302_str_rewrite.smt2
   regress0/strings/dd_67_str_at_eval.smt2
   regress0/strings/dd_a1d_static_rewrite.smt2
@@ -3121,6 +3125,8 @@ set(regress_1_tests
   regress1/proofs/base-lfsc-treesize.smt2
   regress1/proofs/dd.SEQ035_size5.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
+  regress1/proofs/issue-dt-tester-conflict-cons-eq-clash.smt2
+  regress1/proofs/issue-dt-tester-merge-conflict-neg-order.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
