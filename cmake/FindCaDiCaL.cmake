@@ -65,7 +65,7 @@ if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
   # Minimum supported version
   set(CaDiCaL_FIND_VERSION "2.1.0")
   # Maximum supported version
-  set(CaDiCaL_FIND_VERSION_MAX "2.1.3")
+  set(CaDiCaL_FIND_VERSION_MAX "3.0.1")
 
   # Set FOUND_SYSTEM to true; check_system_version will unset this if the
   # version is less than the minimum required
@@ -84,7 +84,7 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-2.2.0-backports")
+  set(CaDiCaL_VERSION "rel-3.0.1")
   set(CaDiCaL_CHECKSUM "")
 
   # avoid configure script and instantiate the makefile manually the configure
